@@ -1,1 +1,1 @@
-*/30 * * * * python /main.py >> /result
+*/1 * * * * python ./main.py >> ./logs
