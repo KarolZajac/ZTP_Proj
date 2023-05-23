@@ -1,6 +1,4 @@
-python-crontab
-numpy
-pandas
 dask
 dask_ml
 scikit-learn
+schedule

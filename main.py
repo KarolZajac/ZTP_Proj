@@ -7,9 +7,12 @@ from dask_ml.metrics import accuracy_score
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.metrics import log_loss
+import schedule
+import time
+import sys
 
 
-def get_metrics(X_train, X_test, y_train, y_test):
+def get_metrics(model, X_train, X_test, y_train, y_test):
     y_train_pred = model.predict(X_train.to_dask_array(lengths=True)).compute()
     y_test_pred = model.predict(X_test.to_dask_array(lengths=True)).compute()
 
@@ -55,8 +58,8 @@ def train(X_train, y_train):
     return model
 
 
-if __name__ == '__main__':
-
+def job():
+    print("job:")
     data = dd.read_csv("bank.csv", header=0, delimiter=';')
     data = preprocess(data)
 
@@ -66,20 +69,30 @@ if __name__ == '__main__':
     model = train(X_train, y_train)
 
     predictions = model.predict(X_test.to_dask_array(lengths=True)).compute()
-    metrics = get_metrics(X_train, X_test, y_train, y_test)
+    metrics = get_metrics(model, X_train, X_test, y_train, y_test)
 
-    print('Model performance for Training set')
-    print("- Accuracy: {:.4f}".format(metrics[0]))
-    print('- Root Mean Squared Error: {:4f}'.format(metrics[1]))
-    print('- Mean Absolute Error: {:4f}'.format(metrics[2]))
-    print('- AUC: {:4f}'.format(metrics[3]))
-    print('- Loss: {:4f}'.format(metrics[4]))
+    with open("./logs", 'a+') as fd:
+        fd.write('Model performance for Training set\n')
+        fd.write("- Accuracy: {:.4f}\n".format(metrics[0]))
+        fd.write('- Root Mean Squared Error: {:4f}\n'.format(metrics[1]))
+        fd.write('- Mean Absolute Error: {:4f}\n'.format(metrics[2]))
+        fd.write('- AUC: {:4f}\n'.format(metrics[3]))
+        fd.write('- Loss: {:4f}\n'.format(metrics[4]))
 
-    print('----------------------------------')
+        fd.write('----------------------------------\n')
 
-    print('Model performance for Test set')
-    print('- Accuracy: {:.4f}'.format(metrics[5]))
-    print('- Root Mean Squared Error: {:.4f}'.format(metrics[6]))
-    print('- Mean Absolute Error: {:.4f}'.format(metrics[7]))
-    print('- AUC: {:.4f}'.format(metrics[8]))
-    print('- Loss: {:4f}'.format(metrics[9]))
+        fd.write('Model performance for Test set\n')
+        fd.write('- Accuracy: {:.4f}\n'.format(metrics[5]))
+        fd.write('- Root Mean Squared Error: {:.4f}\n'.format(metrics[6]))
+        fd.write('- Mean Absolute Error: {:.4f}\n'.format(metrics[7]))
+        fd.write('- AUC: {:.4f}\n'.format(metrics[8]))
+        fd.write('- Loss: {:4f}\n'.format(metrics[9]))
+
+
+if __name__ == '__main__':
+
+    schedule.every(1).minutes.do(job)
+
+    while 1:
+        schedule.run_pending()
+        time.sleep(1)
