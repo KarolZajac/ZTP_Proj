@@ -4,26 +4,36 @@
     <title>Metrics Dashboard</title>
 </head>
 <body>
-    <h1>Current Model Dashboard</h1>
-    <ul>
-        {% for metric, value in train_metrics.items() %}
-            <li>{{ metric }}: {{ value }}</li>
-        {% endfor %}
-    </ul>
-    <ul>
-        {% for metric, value in test_metrics.items() %}
-            <li>{{ metric }}: {{ value }}</li>
-        {% endfor %}
-    </ul>
-    <form action="/retrain"  method="post">
-        <button type="submit">Retrain Model</button>
-    </form>
+<h1>Current Model Dashboard</h1>
+<ul>
+    {% for metric, value in train_metrics.items() %}
+    <li>{{ metric }}: {{ value }}</li>
+    {% endfor %}
+</ul>
+<ul>
+    {% for metric, value in test_metrics.items() %}
+    <li>{{ metric }}: {{ value }}</li>
+    {% endfor %}
+</ul>
+<form action="/retrain" method="post">
+    <button type="submit">Retrain Model</button>
+</form>
 
-    <h1>Training History</h1>
-    <ul>
-        {% for time, metrics in metrics_history %}
-            <li>{{ time }}: {{ metrics }}</li>
-        {% endfor %}
-    </ul>
+<h1>Training History</h1>
+<form action="/filter" method="post">
+    <label for="from">From:</label>
+    <input type="datetime-local" id="from" name="from" required>
+    <label style="margin-left: 10px" for="to">To:</label>
+    <input type="datetime-local" id="to" name="to" required>
+    <div>
+        <button style="display: inline-block" type="submit">Submit</button>
+    </div>
+</form>
+
+<ul>
+    {% for time, metrics in history %}
+    <li><b>{{ time }}:</b> <br> {{ metrics }}</li>
+    {% endfor %}
+</ul>
 </body>
 </html>

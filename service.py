@@ -1,4 +1,5 @@
 import csv
+import sys
 from datetime import datetime
 import json
 import random
@@ -12,8 +13,6 @@ app = Flask(__name__)
 
 
 def json_to_csv(json_data, csv_file):
-
-
     with open(csv_file, 'a+', newline='') as file:
         writer = csv.writer(file, delimiter=';', quoting=csv.QUOTE_NONNUMERIC)
         writer.writerow(json_data.values())
@@ -78,6 +77,8 @@ class MetricHistory:
         self.test_metrics = {}
         self.training_times = []
         self.metrics_history = []
+        self.from_date = "2000-06-09 14:30"
+        self.to_date = "2040-06-09 14:30"
 
     def update(self, metrics):
         self.metrics_history.append(metrics)
@@ -85,12 +86,41 @@ class MetricHistory:
         self.test_metrics = metrics[1]
         self.train_metrics = metrics[0]
 
+    def set_time_section(self, from_date, to_date):
+        self.from_date = fromCalendarToNormal(from_date)
+        self.to_date = fromCalendarToNormal(to_date)
+
+
+def fromCalendarToNormal(input_string):
+    datetime_obj = datetime.strptime(input_string, "%Y-%m-%dT%H:%M")
+    return datetime_obj.strftime("%Y-%m-%d %H:%M")
+
+
+def datetimeToNormal(input_string):
+    return input_string.strftime("%Y-%m-%d %H:%M")
+
 
 @app.route('/')
 def home():
+    from_date = MetricHistory().from_date
+    to_date = MetricHistory().to_date
+
+    indexes = []
+
+    for idx, time in enumerate(MetricHistory().training_times):
+        if to_date > datetimeToNormal(time) > from_date:
+            indexes.append(idx)
+
     return render_template('index.html', train_metrics=MetricHistory().train_metrics,
                            test_metrics=MetricHistory().test_metrics,
-                           metrics_history=zip(MetricHistory().training_times, MetricHistory().metrics_history))
+                           history=zip([MetricHistory().training_times[i] for i in indexes],
+                                       [MetricHistory().metrics_history[i] for i in indexes]))
+
+
+@app.route('/filter', methods=['POST'])
+def filter():
+    MetricHistory().set_time_section(request.form.get("from"), request.form.get("to"))
+    return redirect('/')
 
 
 @app.route('/streaming_data', methods=['GET'])
