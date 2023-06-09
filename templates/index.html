@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Metrics Dashboard</title>
+</head>
+<body>
+    <h1>Current Model Dashboard</h1>
+    <ul>
+        {% for metric, value in train_metrics.items() %}
+            <li>{{ metric }}: {{ value }}</li>
+        {% endfor %}
+    </ul>
+    <ul>
+        {% for metric, value in test_metrics.items() %}
+            <li>{{ metric }}: {{ value }}</li>
+        {% endfor %}
+    </ul>
+    <form action="/retrain"  method="post">
+        <button type="submit">Retrain Model</button>
+    </form>
+
+    <h1>Training History</h1>
+    <ul>
+        {% for time, metrics in metrics_history %}
+            <li>{{ time }}: {{ metrics }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

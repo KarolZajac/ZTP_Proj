@@ -30,8 +30,10 @@ def get_metrics(model, X_train, X_test, y_train, y_test):
     model_train_auc = roc_auc_score(y_train.to_dask_array(lengths=True), y_train_pred)
     model_train_loss = log_loss(y_train.to_dask_array(lengths=True), y_train_pred)
 
-    return [model_train_accuracy, model_train_rmse, model_train_mae, model_train_auc, model_train_loss,
-            model_test_accuracy, model_test_rmse, model_test_mae, model_test_auc, model_test_loss]
+    return ({'acc_train': model_train_accuracy, 'rmse_train': model_train_rmse, 'mae_train': model_train_mae,
+             'auc_train': model_train_auc, 'loss_train': model_train_loss},
+            {'acc_test': model_test_accuracy, 'rmse_test': model_test_rmse, 'mae_test': model_test_mae,
+             'auc_test': model_test_auc, 'loss_test': model_test_loss})
 
 
 def preprocess(data):
@@ -69,29 +71,32 @@ def job():
     model = train(X_train, y_train)
 
     predictions = model.predict(X_test.to_dask_array(lengths=True)).compute()
-    metrics = get_metrics(model, X_train, X_test, y_train, y_test)
+    metrics_train, metrics_test = get_metrics(model, X_train, X_test, y_train, y_test)
 
     with open("./logs", 'a+') as fd:
         fd.write('Model performance for Training set\n')
-        fd.write("- Accuracy: {:.4f}\n".format(metrics[0]))
-        fd.write('- Root Mean Squared Error: {:4f}\n'.format(metrics[1]))
-        fd.write('- Mean Absolute Error: {:4f}\n'.format(metrics[2]))
-        fd.write('- AUC: {:4f}\n'.format(metrics[3]))
-        fd.write('- Loss: {:4f}\n'.format(metrics[4]))
+        fd.write("- Accuracy: {:.4f}\n".format(metrics_train['acc_train']))
+        fd.write('- Root Mean Squared Error: {:4f}\n'.format(metrics_train['rmse_train']))
+        fd.write('- Mean Absolute Error: {:4f}\n'.format(metrics_train['mae_train']))
+        fd.write('- AUC: {:4f}\n'.format(metrics_train['auc_train']))
+        fd.write('- Loss: {:4f}\n'.format(metrics_train['loss_train']))
 
         fd.write('----------------------------------\n')
 
         fd.write('Model performance for Test set\n')
-        fd.write('- Accuracy: {:.4f}\n'.format(metrics[5]))
-        fd.write('- Root Mean Squared Error: {:.4f}\n'.format(metrics[6]))
-        fd.write('- Mean Absolute Error: {:.4f}\n'.format(metrics[7]))
-        fd.write('- AUC: {:.4f}\n'.format(metrics[8]))
-        fd.write('- Loss: {:4f}\n'.format(metrics[9]))
+        fd.write("- Accuracy: {:.4f}\n".format(metrics_test['acc_test']))
+        fd.write('- Root Mean Squared Error: {:4f}\n'.format(metrics_test['rmse_test']))
+        fd.write('- Mean Absolute Error: {:4f}\n'.format(metrics_test['mae_test']))
+        fd.write('- AUC: {:4f}\n'.format(metrics_test['auc_test']))
+        fd.write('- Loss: {:4f}\n'.format(metrics_test['loss_test']))
+
+    return metrics_train, metrics_test
 
 
 if __name__ == '__main__':
 
     schedule.every(1).minutes.do(job)
+    schedule.every()
 
     while 1:
         schedule.run_pending()
