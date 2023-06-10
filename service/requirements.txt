@@ -1,0 +1,6 @@
+scikit-learn
+schedule
+flask
+requests
+dask==2023.6.0
+dask_ml==2023.3.24
