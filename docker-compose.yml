@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  service:
+    build: ./service
+    container_name: service
+    ports:
+      - "5000:5000"
+
+
+  producer:
+    build: ./producer
+    container_name: producer
+    links:
+      - service

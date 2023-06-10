@@ -73,7 +73,7 @@ def job():
     predictions = model.predict(X_test.to_dask_array(lengths=True)).compute()
     metrics_train, metrics_test = get_metrics(model, X_train, X_test, y_train, y_test)
 
-    with open("./logs", 'a+') as fd:
+    with open("logs", 'a+') as fd:
         fd.write('Model performance for Training set\n')
         fd.write("- Accuracy: {:.4f}\n".format(metrics_train['acc_train']))
         fd.write('- Root Mean Squared Error: {:4f}\n'.format(metrics_train['rmse_train']))
@@ -96,7 +96,6 @@ def job():
 if __name__ == '__main__':
 
     schedule.every(1).minutes.do(job)
-    schedule.every()
 
     while 1:
         schedule.run_pending()
